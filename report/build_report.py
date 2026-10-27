@@ -366,7 +366,7 @@ table(doc,
 code(doc, """$ git init
 $ git add .
 $ git commit -m "Work 1: secure REST API skeleton"
-$ git remote add origin https://github.com/<user>/hdu-is-work1.git
+$ git remote add origin https://github.com/WeiTao712/hdu-is-work1.git
 $ git push -u origin main""", "Initialising the repository and linking it to the remote.")
 
 # --- 4 API ----------------------------------------------------------------

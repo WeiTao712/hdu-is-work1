@@ -1,5 +1,7 @@
 # HDU IS — Work 1: Secure REST API with CI/CD and Real-CVE Remediation
 
+[![CI](https://github.com/WeiTao712/hdu-is-work1/actions/workflows/ci.yml/badge.svg)](https://github.com/WeiTao712/hdu-is-work1/actions/workflows/ci.yml)
+
 A small but complete REST API (Flask + SQLite) built with the OWASP Top 10 in
 mind, wired to a GitHub Actions pipeline with SAST and SCA, plus a full
 reproduction → root-cause → fix → verification cycle for a real vulnerability
@@ -309,7 +311,7 @@ Reproduction, root cause, fix and verification are fully documented in
 
 | Assignment requirement | Where |
 |---|---|
-| Public git repository | `<repository URL>` |
+| Public git repository | <https://github.com/WeiTao712/hdu-is-work1> |
 | README with API + security description | this file |
 | SAST/SCA screenshots | §4 and `evidence/` |
 | CVE id + description | §5 |
@@ -317,7 +319,7 @@ Reproduction, root cause, fix and verification are fully documented in
 | Root-cause analysis | `cve-fixes/README.md` §3 |
 | Fix description | `cve-fixes/README.md` §4 |
 | Proof the attack no longer works | `cve-fixes/README.md` §5, `evidence/` |
-| Link to the last successful pipeline | `<pipeline URL>` |
+| Link to the last successful pipeline | see the Actions tab: <https://github.com/WeiTao712/hdu-is-work1/actions> |
 | Folder with the fixes | `cve-fixes/` (`Dockerfile.fixed`, `docker-compose.fixed.yml`) |
 
 ## 7. Licence / academic note
