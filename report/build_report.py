@@ -256,14 +256,12 @@ r.font.color.rgb = GREY
 for _ in range(6):
     doc.add_paragraph()
 
-info = doc.add_table(rows=5, cols=2)
+info = doc.add_table(rows=3, cols=2)
 info.alignment = WD_TABLE_ALIGNMENT.CENTER
 rows = [
-    ("Variant number", "<Variant No.>"),
-    ("Student (Surname, Name)", "<Surname Name>"),
-    ("HDU number", "<HDU number>"),
-    ("Group", "<Group>"),
-    ("Date of submission", "<DD.MM.YYYY>"),
+    ("Variant number", "CVE-2024-1561"),
+    ("Student (Surname, Name)", "Wei Tao"),
+    ("HDU number", "23320320"),
 ]
 for i, (label, value) in enumerate(rows):
     c0, c1 = info.rows[i].cells
@@ -276,15 +274,11 @@ for i, (label, value) in enumerate(rows):
     p1 = c1.paragraphs[0]
     run = p1.add_run(value)
     run.font.size = Pt(11)
-    run.font.color.rgb = RGBColor(0xB0, 0x30, 0x30)
 
 doc.add_paragraph()
 note = doc.add_paragraph()
 note.alignment = WD_ALIGN_PARAGRAPH.CENTER
-r = note.add_run(
-    "Placeholders in red are filled in by the student before submission "
-    "(variant, name, HDU number)."
-)
+r = note.add_run("Variant: the CVE analysed in section 8 of this report.")
 r.font.size = Pt(8.5)
 r.font.italic = True
 r.font.color.rgb = GREY
