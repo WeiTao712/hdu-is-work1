@@ -279,10 +279,14 @@ mechanism that flags `gradio==4.12.0` in section 5. The upgrade was applied as a
 normal commit (`requirements.txt`), all 28 tests were re-run against the new
 versions, and only then was the pipeline green.
 
-> **Screenshots.** The GitHub Actions screenshots of the green `CI` run and of
-> the `bandit-report` / `pip-audit-report` artifacts belong here
-> (`docs/ci-green.png`, `docs/bandit-artifact.png`, `docs/pip-audit-artifact.png`);
-> the console output above is the same scanner run locally.
+### 4.2 The pipeline in GitHub Actions
+
+![Green CI run](docs/ci-green.png)
+
+The run above is the real one: [run #2](https://github.com/WeiTao712/hdu-is-work1/actions/runs/40438088859)
+— SAST 26 s, SCA 19 s, tests 11 s, status **Success**, with the `bandit-report` and
+`pip-audit-report` artifacts attached to the run. The console output quoted in §4.1
+and §6.2 comes from the same scanners run locally with the same versions and flags.
 
 ---
 
