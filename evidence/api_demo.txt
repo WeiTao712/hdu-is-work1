@@ -1,0 +1,99 @@
+
+==================================================================
+ 1. GET /health
+==================================================================
+$ curl -s http://127.0.0.1:5000/health
+{"status":"ok"}
+
+< HTTP 200
+
+==================================================================
+ 2. POST /auth/login - valid credentials
+==================================================================
+$ curl -s -X POST http://127.0.0.1:5000/auth/login -H 'Content-Type: application/json' -d @login.json
+{"access_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJkZW1vIiwiaWF0IjoxNzkyNjM3NzAwLCJuYmYiOjE3OTI2Mzc3MDAsImV4cCI6MTc5MjYzODYwMCwianRpIjoiYldaSGFLUng1QklKSWc5eTFVRnNBZyIsImlzcyI6ImhkdS1pcy13b3JrMSIsImF1ZCI6ImhkdS1pcy13b3JrMS1hcGkifQ.TX-u-OU_Dvj34o1h8xyxwN_4ocojYgCzVY5UXPxfz78","expires_in":900,"token_type":"Bearer"}
+
+==================================================================
+ 3. POST /auth/login - wrong password (generic message, no user enumeration)
+==================================================================
+$ curl -s -X POST .../auth/login -d @login_bad.json
+{"error":"invalid_credentials","message":"Invalid username or password","status":401}
+
+< HTTP 401
+
+==================================================================
+ 4. GET /api/data WITHOUT a token -> 401
+==================================================================
+$ curl -s http://127.0.0.1:5000/api/data
+{"error":"authentication_required","message":"A Bearer token is required for this endpoint","status":401}
+
+< HTTP 401
+
+==================================================================
+ 5. GET /api/data WITH the Bearer token -> 200
+==================================================================
+$ curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:5000/api/data
+{"count":3,"items":[{"author":"demo","body":"The /preview endpoint escapes every user controlled value before it reaches the DOM.","created_at":"2026-10-22 02:54:40","id":3,"title":"Stored XSS is neutralised on output"},{"author":"demo","body":"Every SQL statement in this project binds its arguments, so ' OR 1=1 -- stays a literal string.","created_at":"2026-10-22 02:54:40","id":2,"title":"Parameterised queries"},{"author":"demo","body":"This endpoint is protected by a JWT. Try it without a token and you get a 401.","created_at":"2026-10-22 02:54:40","id":1,"title":"Welcome to the HDU IS Work 1 API"}]}
+
+< HTTP 200
+
+==================================================================
+ 6. SQL injection attempt against the search parameter
+==================================================================
+$ curl -s -G -H "Authorization: Bearer $TOKEN" --data-urlencode "q=' OR 1=1 --" http://127.0.0.1:5000/api/data
+{"count":1,"items":[{"author":"demo","body":"Every SQL statement in this project binds its arguments, so ' OR 1=1 -- stays a literal string.","created_at":"2026-10-22 02:54:40","id":2,"title":"Parameterised queries"}]}
+
+< HTTP 200
+(A successful injection would return all 3 rows; the payload is only matched as literal text.)
+
+==================================================================
+ 7. Stored XSS payload posted as data
+==================================================================
+$ curl -s -X POST .../api/posts -H 'Content-Type: application/json' -d @xss.json
+{"author":"demo","body":"<img src=x onerror=alert(document.cookie)>","created_at":"2026-10-22 02:55:01","id":4,"title":"<script>alert(1)</script>"}
+
+==================================================================
+ 8. ... and neutralised when the same post is rendered as HTML
+==================================================================
+$ curl -s -i -H "Authorization: Bearer $TOKEN" http://127.0.0.1:5000/api/posts/4/preview
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.9 Python/3.11.5
+Date: Thu, 22 Oct 2026 02:55:01 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 270
+Content-Security-Policy: default-src 'none'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: no-referrer
+Cache-Control: no-store
+Connection: close
+
+<!doctype html><html><head><meta charset='utf-8'><title>&lt;script&gt;alert(1)&lt;/script&gt;</title></head><body><h1>&lt;script&gt;alert(1)&lt;/script&gt;</h1><p class='author'>by demo</p><article>&lt;img src=x onerror=alert(document.cookie)&gt;</article></body></html>
+
+==================================================================
+ 9. Token with a tampered signature -> 401
+==================================================================
+$ curl -s -H "Authorization: Bearer <token with last 6 chars changed>" http://127.0.0.1:5000/api/data
+{"error":"invalid_token","message":"Invalid token","status":401}
+
+< HTTP 401
+
+==================================================================
+ 10. POST /auth/logout revokes the token
+==================================================================
+$ curl -s -X POST -H "Authorization: Bearer $TOKEN" http://127.0.0.1:5000/auth/logout
+{"message":"Token revoked"}
+
+< HTTP 200
+$ curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:5000/api/data   # same token again
+{"error":"invalid_token","message":"Token has been revoked","status":401}
+
+< HTTP 401
+
+==================================================================
+ 11. POST /auth/register with a weak password -> 400
+==================================================================
+$ curl -s -X POST .../auth/register -d @weak.json
+{"error":"weak_password","message":"Password must be at least 12 characters long; Password must contain both letters and digits","status":400}
+
+< HTTP 400

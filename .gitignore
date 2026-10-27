@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.deps/
+.venv/
+venv/
+
+# Local data & secrets
+data/*.db
+.env
+*.sqlite3
+
+# Tool output
+/bandit.sarif
+/pip-audit.txt
+htmlcov/
+.coverage

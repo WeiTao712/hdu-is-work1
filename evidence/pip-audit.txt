@@ -1,0 +1,6 @@
+$ pip-audit --path .runtime          # AFTER the upgrade
+WARNING:pip_audit._cache:Failed to write to cache directory, performance may be degraded: [Errno 2] No such file or directory: 'C:\\Users\\13633\\.pip-audit-cache\\e\\c\\7\\f\\b\\tmp99389msr'
+Found 1 known vulnerability in 1 package
+Name  Version ID              Fix Versions
+----- ------- --------------- ------------
+flask 3.0.3   PYSEC-2026-2151 3.1.3
