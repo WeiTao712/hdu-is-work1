@@ -1,6 +1,6 @@
 # HDU IS — Work 1 deliverable
 
-Everything the assignment asks for, in one folder.
+Everything the assignment asks for, in one folder. Variant: **CVE-2021-21315**.
 
 ```
 work1/                          ← this folder IS the git repository root
@@ -8,10 +8,11 @@ work1/                          ← this folder IS the git repository root
 ├─ tests/                      28 functional + security tests
 ├─ .github/workflows/ci.yml    SAST + SCA + tests on push/PR (at the root, so it runs)
 ├─ cve-fixes/                  reproduction + fix ("folder with your fixes")
-│  ├─ Dockerfile               vulnerable: systeminformation 5.3.0
-│  ├─ Dockerfile.fixed         fixed: 5.3.1 + application allow-list
+│  ├─ Dockerfile               vulnerable image: systeminformation 5.3.0
+│  ├─ Dockerfile.fixed         fixed image: 5.3.1 + application allow-list
 │  ├─ docker-compose*.yml      the two environments, port 3000
 │  ├─ app/server.js            the 40-line Express dashboard used in both
+│  ├─ app/package.json         pins express + systeminformation 5.3.0
 │  ├─ exploit/si_exploit.py    time-based PoC (payload `nginx; sleep 5`)
 │  ├─ exploit/verify_fix.py    exploit-blocked + regression test
 │  ├─ exploit/version_probe.js library-level A/B probe (5.3.0 vs 5.3.1)
@@ -24,9 +25,7 @@ work1/                          ← this folder IS the git repository root
 │  ├─ bandit.txt               SAST result
 │  ├─ pip-audit.txt            SCA result
 │  ├─ pytest.txt               test suite
-│  ├─ si_probe.txt             library-level A/B evidence (5.3.0 vs 5.3.1)
-│  ├─ exploit_vulnerable.txt   CVE reproduction transcript (reference env)
-│  └─ exploit_fixed.txt        CVE blocked after the fix (reference env)
+│  └─ si_probe.txt             library-level A/B evidence (5.3.0 vs 5.3.1)
 ├─ README.md                   the repository README (= the one you submit)
 ├─ requirements*.txt, Dockerfile, .env.example, run.py
 └─ SUBMISSION.md               this file
@@ -43,50 +42,42 @@ work1/                          ← this folder IS the git repository root
 | Tests | `pytest` → 28 passed | `evidence/pytest.txt` |
 | SAST | `bandit -r app run.py -ll` → no medium/high | `evidence/bandit.txt` |
 | SCA | `pip-audit -r requirements.txt` | `evidence/pip-audit.txt` |
-| CVE-2021-21315 | real 5.3.0 vs 5.3.1 installed locally: arrays coerced then rejected | `evidence/si_probe.txt` |
-| Fix | 5.3.1 refuses non-strings; the app allow-list rejects the payload with 400 | `evidence/si_probe.txt` + `cve-fixes/exploit/verify_fix.py` |
+| CVE-2021-21315 | real 5.3.0 vs 5.3.1 installed locally: arrays coerced, then rejected | `evidence/si_probe.txt` |
+| Fix | 5.3.1 refuses non-strings; the app allow-list answers 400 | `evidence/si_probe.txt` + `cve-fixes/exploit/verify_fix.py` |
 
 The library-level evidence was executed on this machine (Windows, Node 22)
 against the real `systeminformation@5.3.0` and `@5.3.1`, and it is reproducible
 anywhere Node runs. The end-to-end container run needs a POSIX shell (the
 vulnerable call sites are Linux/macOS code paths) and Docker, which this machine
-does not have — the container transcripts are therefore marked as the reference
-environment's expected output, and the compose files are provided to reproduce
-them in one command.
+does not have — so those transcripts are marked as the reference environment's
+expected output, and the compose files reproduce them in one command.
 
-## What you still have to do
+## Repository state
 
-1. **Push `secure-api/` to GitHub** (create the repo, then):
+- Public repository: <https://github.com/WeiTao712/hdu-is-work1>
+- Default branch `main`, CI green (bandit · pip-audit · pytest).
+- Title page of the report is filled in: variant `CVE-2021-21315`,
+  `Wei Tao`, `23320320` — no placeholders.
 
-   ```bash
-   cd secure-api
-   git init && git add . && git commit -m "Work 1"
-   git branch -M main
-   git remote add origin https://github.com/<you>/hdu-is-work1.git
-   git push -u origin main
-   ```
+## What you still have to do (optional, for full marks on screenshots)
 
-   Wait for the first CI run, then copy the run URL and take the screenshots
-   listed in the report (§6.3) and in the README (§4).
-
-2. **Run the Vulhub part on a machine with Docker** and take the three
-   screenshots referenced in the report (§9, §10.4, §13):
+1. **Run the container lab on a machine with Docker** and replace the three
+   screenshot placeholders in the report (§9, §10.4, §13.2):
 
    ```bash
-   git clone https://github.com/vulhub/vulhub.git
-   docker compose up -d --build
+   cd cve-fixes
+   docker compose up -d --build                       # systeminformation 5.3.0
    python exploit/si_exploit.py --target http://127.0.0.1:3000
    docker compose down
-   cd <this folder>/cve-lab && docker compose -f docker-compose.fixed.yml up -d --build
-   python exploit/verify_fix.py http://127.0.0.1:7860
+   docker compose -f docker-compose.fixed.yml up -d --build   # 5.3.1 + allow-list
+   python exploit/verify_fix.py --target http://127.0.0.1:3000
    ```
 
-3. **Fill in the title page**: variant number, surname + name, HDU number,
-   group, date (they are red placeholders in `report/Work1_Report_HDU_IS.docx`).
+2. **Paste the two GitHub Actions screenshots** (the run page and one expanded
+   log) into §6.3 of the report, replacing the placeholder there.
 
-4. Paste the GitHub Actions screenshots into §6.3 of the report and into §4 of
-   `secure-api/README.md` (search for `SCA-OUTPUT` and the screenshot
-   placeholders).
+Nothing else is outstanding: the API, the tests, the pipeline, the CVE analysis
+and the fix are all in place and pushed.
 
 ## Regenerating things
 
@@ -95,8 +86,15 @@ them in one command.
 python report/build_report.py
 
 # API
-cd secure-api && pip install -r requirements-dev.txt && python run.py
+pip install -r requirements-dev.txt && python run.py
 
-# tests + scanners
+# tests + scanners (same commands as CI)
 pytest -v ; bandit -r app run.py -ll ; pip-audit -r requirements.txt
+
+# library-level CVE evidence, no Docker needed
+cd cve-fixes
+npm i systeminformation@5.3.0 --prefix .tmp/old
+npm i systeminformation@5.3.1 --prefix .tmp/new
+node exploit/version_probe.js .tmp/old/node_modules/systeminformation
+node exploit/version_probe.js .tmp/new/node_modules/systeminformation
 ```

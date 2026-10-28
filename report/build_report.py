@@ -338,7 +338,7 @@ numbered(doc, [
     "Create a CI/CD configuration that runs a SAST and a SCA scanner automatically on every push and "
     "pull request.",
     "Test the API (curl / Postman) and capture the scanner reports.",
-    "Select, launch and exploit a real CVE in a Vulhub environment.",
+    "Select, launch and exploit a real CVE in an isolated container environment.",
     "Analyse the root cause, develop a fix, apply it and prove that the attack no longer works.",
     "Document everything in this report and in the repository README.",
 ])
@@ -544,7 +544,7 @@ bullets(doc, [
 ])
 
 doc.add_heading("5.5 Test suite as security regression", level=2)
-code(doc, "28 passed in 1.36s", "Result of the automated test suite (evidence/pytest.txt).")
+code(doc, "28 passed in 3.16s", "Result of the automated test suite (evidence/pytest.txt).")
 para(doc, "The 28 tests are not only functional. They encode the security requirements: SQLi payloads in "
           "the search parameter and in the login body, a UNION SELECT attempt that must not leak password "
           "hashes, the stored-XSS round trip, a tampered signature, an alg:none token, an expired token, "

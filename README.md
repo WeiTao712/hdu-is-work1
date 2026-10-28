@@ -338,5 +338,6 @@ library-level A/B evidence is in
 
 ## 7. Licence / academic note
 
-Coursework for HDU IS. The vulnerable environment is used only inside the
-provided Vulhub containers; no live system is attacked.
+Coursework for HDU IS. The vulnerable environment is built locally from the
+images in `cve-fixes/` and is reachable only on 127.0.0.1; no third-party
+system is attacked.
