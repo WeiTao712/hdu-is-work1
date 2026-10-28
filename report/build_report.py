@@ -633,28 +633,17 @@ table(doc,
       ],
       widths=[3.4, 5.0, 3.6, 4.2])
 
-# --- 8 CVE selection ------------------------------------------------------
 # --- 8 selection ----------------------------------------------------------
 doc.add_heading("8. Selection of the vulnerability", level=1)
 doc.add_heading("8.1 Constraints and choice", level=2)
-para(doc, "The course already has a list of CVE identifiers that have been used, and re-using one of them "
-          "was not allowed. The variant assigned to this work is CVE-2021-21315, so the candidate table "
-          "below documents the check that had to be done and the alternatives that were rejected.")
-table(doc,
-      ["CVE", "Product", "In used list?", "Verdict"],
-      [
-          ["CVE-2018-1000656", "Flask/Werkzeug", "yes", "rejected — already used"],
-          ["CVE-2021-41773 / 42013", "Apache httpd", "yes", "rejected — already used"],
-          ["CVE-2023-51449", "gradio", "yes", "rejected — already used"],
-          ["CVE-2017-12615", "Tomcat", "yes", "rejected — already used"],
-          ["CVE-2019-11043", "PHP-FPM", "yes", "rejected — already used"],
-          ["CVE-2024-23334", "aiohttp", "yes", "rejected — already used"],
-          ["CVE-2021-3129", "Laravel Ignition", "no", "valid, but the payload chain is heavy for a first CVE"],
-          ["CVE-2019-14234", "Django", "no", "valid, but needs a PostgreSQL container to demonstrate"],
-          ["CVE-2021-21315", "systeminformation (npm)", "no", "**assigned and analysed** — one parameter, "
-                                                             "objective fix, no exotic setup"],
-      ],
-      widths=[3.8, 4.2, 2.6, 5.8])
+para(doc, "The course keeps a list of CVE identifiers that other students have already used, and re-using "
+          "one of them is not allowed. The variant assigned to this work is CVE-2021-21315, and it is not "
+          "on that list.")
+para(doc, "Three properties made the analysis practical rather than theoretical: the defect is in a "
+          "component that web applications really install (so the exploit is realistic, not synthetic); it "
+          "needs one parameter and one request (so it is reproducible in a few commands); and it was fixed "
+          "in a documented commit (so the fix can be verified objectively instead of asserted). The "
+          "criterion applied throughout was therefore “a real, reproducible defect with a checkable fix”.")
 para(doc, "CVE-2021-21315 is a library bug rather than a bug in a web framework, which matters for the "
           "report: the vulnerability lives in the dependency, so the application built around it is small "
           "on purpose — a dashboard API of about 40 lines whose only job is to hand a query parameter to "
