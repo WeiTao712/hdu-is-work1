@@ -5,14 +5,15 @@
 A small but complete REST API (Flask + SQLite) built with the OWASP Top 10 in
 mind, wired to a GitHub Actions pipeline with SAST and SCA, plus a full
 reproduction → root-cause → fix → verification cycle for a real vulnerability
-(**CVE-2024-1561**, gradio) in a Vulhub environment.
+(**CVE-2021-21315**, the npm package `systeminformation`) in a two-container
+environment.
 
 | | |
 |---|---|
 | Language / stack | Python 3.11, Flask 3.1.3, SQLite |
 | Auth | JWT (HS256, 15 min) + bcrypt password hashing |
 | CI | GitHub Actions: bandit (SAST), pip-audit (SCA), pytest |
-| CVE | CVE-2024-1561 — gradio arbitrary file read (CVSS 7.5) |
+| CVE | CVE-2021-21315 — `systeminformation` command injection (CVSS 7.8) |
 
 ---
 
@@ -32,7 +33,7 @@ reproduction → root-cause → fix → verification cycle for a real vulnerabil
 │     └─ posts.py        /api/data, /api/posts, /api/posts/<id>, .../preview
 ├─ tests/                28 functional + security tests
 ├─ .github/workflows/ci.yml   SAST (bandit) + SCA (pip-audit) + pytest on every push/PR
-├─ cve-fixes/            CVE-2024-1561: vulnerable env, exploit, fixed image, verification
+├─ cve-fixes/            CVE-2021-21315: vulnerable env, exploit, fixed image, verification
 ├─ evidence/             raw transcripts of every check quoted in this README
 ├─ report/               the lab report (PDF/DOCX) and the script that builds it
 ├─ Dockerfile            production image (waitress, non-root user)
@@ -275,7 +276,7 @@ No known vulnerabilities found
 ```
 
 This is the SCA stage doing exactly what it is for, and it is the same
-mechanism that flags `gradio==4.12.0` in section 5. The upgrade was applied as a
+mechanism that flags `systeminformation@5.3.0` in section 5. The upgrade was applied as a
 normal commit (`requirements.txt`), all 28 tests were re-run against the new
 versions, and only then was the pipeline green.
 
@@ -290,26 +291,35 @@ and §6.2 comes from the same scanners run locally with the same versions and fl
 
 ---
 
-## 5. CVE analysis — CVE-2024-1561
+## 5. CVE analysis — CVE-2021-21315
 
 | Field | Value |
 |---|---|
-| CVE | **CVE-2024-1561** |
-| Product | gradio (Python web UI framework) |
-| Affected | `>= 4.12.0, < 4.13.0` |
-| Fixed | **4.13.0** (gradio-app/gradio commit `24a5836`) |
-| CVSS v3.0 | 7.5 HIGH — `AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N` |
-| CWE | CWE-29 Path Traversal |
-| Class | Broken access control / unsafe exposure of an internal API |
+| CVE | **CVE-2021-21315** (GHSA-2m8v-572m-ff2v) |
+| Product | `systeminformation` (npm) — host/OS information for Node.js |
+| Affected | `< 5.3.1` |
+| Fixed | **5.3.1** (sebhildebrandt/systeminformation commit `07daa05`) |
+| CVSS v3.1 | 7.8 HIGH — `AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H` |
+| CWE | CWE-78 OS command injection |
+| Class | Injection through a library that builds shell commands by concatenation |
 
-The `component_server` endpoint, which is reachable **without authentication**,
-lets a caller invoke any method of a `Component`/`Block` object. By naming
-`move_resource_to_block_cache` the attacker copies an arbitrary file into
-gradio's temporary directory and then downloads it through `/file=`.
+The package answers questions about the host by running `ps`, `netstat`,
+`ifconfig`, `sc` and `docker`, and it builds those command lines by string
+concatenation before calling `child_process.exec()` — which always starts a
+shell. A parameter such as a service name is therefore shell syntax. The
+parameter is typed `string | string[]`, so an array is coerced into a
+comma-joined string and carries metacharacters through.
 
-Reproduction, root cause, fix and verification are fully documented in
-[`cve-fixes/README.md`](cve-fixes/README.md) and implemented in
-[`cve-fixes/exploit/gradio_exploit.py`](cve-fixes/exploit/gradio_exploit.py).
+The lab is a 40-line Express dashboard that forwards `?name=` into
+`si.services()`. The payload `nginx; sleep 5` makes the vulnerable container
+answer five seconds later; 5.3.1 rejects non-strings and filters the value.
+
+Reproduction, root cause, fix and verification are documented in
+[`cve-fixes/README.md`](cve-fixes/README.md), implemented in
+[`cve-fixes/app/server.js`](cve-fixes/app/server.js) and
+[`cve-fixes/exploit/si_exploit.py`](cve-fixes/exploit/si_exploit.py), and the
+library-level A/B evidence is in
+[`evidence/si_probe.txt`](evidence/si_probe.txt).
 
 ## 6. Deliverables map
 

